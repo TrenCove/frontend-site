@@ -9,3 +9,9 @@ export interface item {
     auction_type: 'F' | 'D',
     end_time: string
 }
+
+export interface receivedWebsocketData {
+    action: string,
+    username: string,
+    item: item
+}

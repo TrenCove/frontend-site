@@ -3,38 +3,61 @@ import { useRouter } from "next/router";
 import SearchTable from "@/components/SearchTable";
 import { item } from "@/interfaces/interfaces";
 
+
 export default function Home() {
   const router = useRouter();
   const [auth, setAuth] = useState(false);
   const [items, setItems] = useState<item[]>();
+  const token = getAccessToken();
 
   function logout() {
     localStorage.clear();
     setAuth(false);
+    router.push("/login");
+  }
+
+  function getAccessToken() {
+    if (typeof window !== "undefined") return localStorage.getItem("token");
+  }
+
+  function isAuth(token: string | undefined | null) {
+    if (token != undefined) {
+      fetch("http://localhost:3001/testAuth", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }).then(async (response) => {
+        console.log("Checking auth on server");
+        if (response.status == 200) {
+          console.log("Authed");
+          setAuth(true);
+        } else {
+          localStorage.removeItem("token");
+          localStorage.removeItem("username");
+          setAuth(false);
+          router.push("/login");
+        }
+      });
+    }
   }
 
   useEffect(() => {
-    const getAccessToken = () => {
-      if (typeof window !== "undefined") return localStorage.getItem("token");
-    };
-    const token = getAccessToken();
     if (token != undefined) {
-      setAuth(true);
+      isAuth(token);
+      fetch("http://localhost:3002/getAllItems", {
+        method: "GET",
+      }).then(async (response) => {
+        console.log("Fetching");
+        if (response.status == 200) {
+          setItems(await response.json());
+        }
+      });
     } else {
-      localStorage.removeItem("token");
-      localStorage.removeItem("username");
-      setAuth(false);
       router.push("/login");
     }
-    fetch("http://localhost:3002/getAllItems", {
-      method: "GET",
-    }).then(async (response) => {
-      console.log("Fetching");
-      if (response.status == 200) {
-        setItems(await response.json());
-      }
-    });
-  },[]);
+  }, []);
 
   if (auth == true) {
     console.log("authed");
