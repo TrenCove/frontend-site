@@ -32,35 +32,37 @@ export default function ItemPage() {
       setInputError(true);
     } else {
       setInputError(false);
-      //fetch bid service here
-      const newItem = {
-        item: { ...item, price: bid, top_bidder: username },
-      };
-      fetch("http://localhost:3003/publish", {
+      const request = {
+        bidAmount: bid,
+        username: username,
+        id: item?.item_id
+      }
+      fetch("http://localhost:3005/placeBid", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(newItem),
+        body: JSON.stringify(request),
       }).then(async (response) => {
         console.log(response);
+        router.reload();
       });
     }
   }
 
   function buyNow() {
-    //fetch buy now service here
-    const newItem = {
-      item: { ...item, active: "false", top_bidder: username },
-    };
-    fetch("http://localhost:3003/publish", {
+    const request = {
+        bidder: username,
+        id: item?.item_id
+    }
+    fetch("http://localhost:3005/buyItem", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(newItem),
+      body: JSON.stringify(request),
     }).then(async (response) => {
       console.log(response);
     });
@@ -197,7 +199,7 @@ export default function ItemPage() {
           type="number"
           placeholder="$$$"
           onChange={(e) => setBid(e.target.value)}
-          hidden={item.active == "false" || item.auction_type == "D"}
+          hidden={item.active != "true" || item.auction_type == "D"}
         ></input>
         <div hidden={!inputError}>Error, please try again</div>
         <div hidden={username != item.top_bidder || item.active == "true"}>
@@ -207,7 +209,7 @@ export default function ItemPage() {
           className="font-bold py-2 px-4 rounded-full bg-green-500"
           type="button"
           onClick={sendBid}
-          hidden={item.active == "false" || item.auction_type == "D"}
+          hidden={item.active != "true" || item.auction_type == "D"}
         >
           Bid
         </button>

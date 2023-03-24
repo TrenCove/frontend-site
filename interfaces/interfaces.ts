@@ -5,7 +5,7 @@ export interface Item {
     top_bidder: string,
     price: number,
     shipping_cost: number,
-    active: boolean | string,
+    active: string,
     auction_type: 'F' | 'D',
     end_time: string
 }

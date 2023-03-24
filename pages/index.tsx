@@ -128,37 +128,7 @@ export default function Home() {
           <div className="overflow-x-auto sm:mx-0.5 lg:mx-0.5">
             <div className="py-2 inline-block min-w-full sm:px-6 lg:px-8">
               <div className="overflow-hidden">
-                <table className="min-w-full">
-                  <thead className="bg-white border-b">
-                    <tr>
-                      <th
-                        scope="col"
-                        className="text-sm font-medium text-gray-900 px-6 py-4 text-left"
-                      >
-                        Item Name
-                      </th>
-                      <th
-                        scope="col"
-                        className="text-sm font-medium text-gray-900 px-6 py-4 text-left"
-                      >
-                        Auction Type
-                      </th>
-                      <th
-                        scope="col"
-                        className="text-sm font-medium text-gray-900 px-6 py-4 text-left"
-                      >
-                        Price
-                      </th>
-                      <th
-                        scope="col"
-                        className="text-sm font-medium text-gray-900 px-6 py-4 text-left"
-                      >
-                        Ending Time
-                      </th>
-                    </tr>
-                  </thead>
-                  <SearchTable items={items} />
-                </table>
+              <SearchTable items={items}></SearchTable>
                 <button
                   className="font-bold py-2 px-4 rounded-full bg-green-500"
                   type="button"
