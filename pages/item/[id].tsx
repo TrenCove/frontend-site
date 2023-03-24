@@ -35,8 +35,8 @@ export default function ItemPage() {
       const request = {
         bidAmount: bid,
         username: username,
-        id: item?.item_id
-      }
+        id: item?.item_id,
+      };
       fetch("http://localhost:3005/placeBid", {
         method: "POST",
         headers: {
@@ -53,9 +53,9 @@ export default function ItemPage() {
 
   function buyNow() {
     const request = {
-        bidder: username,
-        id: item?.item_id
-    }
+      bidder: username,
+      id: item?.item_id,
+    };
     fetch("http://localhost:3005/buyItem", {
       method: "POST",
       headers: {
@@ -100,11 +100,11 @@ export default function ItemPage() {
       },
     }).then(async (response) => {
       if (response.status == 200) {
-        try{
-            await response.json();
-            setItemPaid(true);
-        }catch(error){
-            setItemPaid(false);
+        try {
+          await response.json();
+          setItemPaid(true);
+        } catch (error) {
+          setItemPaid(false);
         }
       }
     });
@@ -120,10 +120,10 @@ export default function ItemPage() {
     }).then(async (response) => {
       console.log("Fetching item " + id);
       if (response.status == 200) {
-        try{
-            setItem(await response.json());
-        }catch(error){
-            router.push("/");
+        try {
+          setItem(await response.json());
+        } catch (error) {
+          router.push("/");
         }
       }
     });
@@ -177,6 +177,12 @@ export default function ItemPage() {
 
     return (
       <div>
+        <button
+          className="font-bold py-2 px-4 rounded-full bg-green-500"
+          type="button"
+        >
+          <a href="/">Home</a>
+        </button>
         <div>Item ID: {item.item_id}</div>
         <div>
           Auction Type: {item.auction_type == "D" ? "Dutch" : "Forward"}

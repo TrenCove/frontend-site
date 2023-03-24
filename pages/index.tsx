@@ -82,7 +82,7 @@ export default function Home() {
 
   function isAuth(token: string | undefined | null) {
     if (token != undefined) {
-      fetch("http://localhost:3001/testAuth", {
+      fetch("http://localhost:3001/getUserInfo", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -128,7 +128,7 @@ export default function Home() {
           <div className="overflow-x-auto sm:mx-0.5 lg:mx-0.5">
             <div className="py-2 inline-block min-w-full sm:px-6 lg:px-8">
               <div className="overflow-hidden">
-              <SearchTable items={items}></SearchTable>
+                <SearchTable items={items}></SearchTable>
                 <button
                   className="font-bold py-2 px-4 rounded-full bg-green-500"
                   type="button"

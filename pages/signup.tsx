@@ -52,6 +52,12 @@ export default function Signup() {
   return (
     <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 flex flex-col">
       <div className="mb-4">
+        <button
+          className="font-bold py-2 px-4 rounded-full bg-green-500"
+          type="button"
+        >
+          <a href="/">Home</a>
+        </button>
         <label className="block text-grey-darker text-sm font-bold mb-2">
           Username
         </label>
