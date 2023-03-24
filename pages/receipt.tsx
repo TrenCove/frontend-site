@@ -1,12 +1,11 @@
-import { useState } from "react";
 import { useRouter } from "next/router";
 export default function Receipt()
 {
     const router = useRouter();
     async function receipt()
     {
-    const response = await fetch("http://localhost:3004/receipt", {
-        method: "POST",
+    const response = await fetch("http://localhost:3002/receipt", {
+        method: "GET",
         headers: {
             "Content-Type": "application/json"
         },
