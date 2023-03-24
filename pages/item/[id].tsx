@@ -1,14 +1,16 @@
-import { item, receivedWebsocketData } from "@/interfaces/interfaces";
+import Payment from "@/components/Payment";
+import { Item, ReceivedWebsocketData } from "@/interfaces/interfaces";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
-export default function Item() {
+export default function ItemPage() {
   const router = useRouter();
-  const id = router.query.id as unknown as number; //jank af
+  const id = router.query.id as unknown as number;
   const [auth, setAuth] = useState(false);
-  const [item, setItem] = useState<item>();
+  const [item, setItem] = useState<Item>();
   const [bid, setBid] = useState("");
   const [inputError, setInputError] = useState(false);
+  const [itemPaid, setItemPaid] = useState(false);
   const token = getAccessToken();
   const username = getUsername();
   const isBrowser = typeof window !== "undefined";
@@ -29,7 +31,7 @@ export default function Item() {
     if (isNaN(+bid) || +bid <= +item!.price) {
       setInputError(true);
     } else {
-        setInputError(false);
+      setInputError(false);
       //fetch bid service here
       const newItem = {
         item: { ...item, price: bid, top_bidder: username },
@@ -45,6 +47,23 @@ export default function Item() {
         console.log(response);
       });
     }
+  }
+
+  function buyNow() {
+    //fetch buy now service here
+    const newItem = {
+      item: { ...item, active: "false", top_bidder: username },
+    };
+    fetch("http://localhost:3003/publish", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newItem),
+    }).then(async (response) => {
+      console.log(response);
+    });
   }
 
   function isAuth(token: string | undefined | null) {
@@ -70,25 +89,53 @@ export default function Item() {
     }
   }
 
+  function getReceipt(id: number) {
+    fetch("http://localhost:3004/searchPaid/" + id, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    }).then(async (response) => {
+      if (response.status == 200) {
+        try{
+            await response.json();
+            setItemPaid(true);
+        }catch(error){
+            setItemPaid(false);
+        }
+      }
+    });
+  }
+
+  function getItem(id: number) {
+    fetch("http://localhost:3002/searchItemID/" + id, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    }).then(async (response) => {
+      console.log("Fetching item " + id);
+      if (response.status == 200) {
+        try{
+            setItem(await response.json());
+        }catch(error){
+            router.push("/");
+        }
+      }
+    });
+  }
+
   useEffect(() => {
     if (token != undefined) {
       isAuth(token);
       if (router.isReady) {
-        fetch("http://localhost:3002/searchItemID/" + id, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }).then(async (response) => {
-          console.log("Fetching item " + id);
-          if (response.status == 200) {
-            setItem(await response.json());
-          }
-        });
+        getItem(id);
+        getReceipt(id);
       }
     } else {
-      router.push("/login");
+      router.push("/");
     }
   }, [router.isReady]);
 
@@ -99,7 +146,9 @@ export default function Item() {
         username: username,
         item: id,
       };
-      wsInstance.send(JSON.stringify(subscribeRequest));
+      if (item.active == "true") {
+        wsInstance.send(JSON.stringify(subscribeRequest));
+      }
     };
 
     wsInstance.onclose = () => {
@@ -112,9 +161,9 @@ export default function Item() {
     };
 
     wsInstance.onmessage = (message) => {
-      const receivedMessage = JSON.parse(message.data) as receivedWebsocketData;
+      const receivedMessage = JSON.parse(message.data) as ReceivedWebsocketData;
       console.log("Received message from server: ");
-      console.log(receivedMessage)
+      console.log(receivedMessage);
       if (
         receivedMessage.action == "publish" &&
         username == receivedMessage.username &&
@@ -127,29 +176,69 @@ export default function Item() {
     return (
       <div>
         <div>Item ID: {item.item_id}</div>
-        <div>Auction Type: {item.auction_type}</div>
+        <div>
+          Auction Type: {item.auction_type == "D" ? "Dutch" : "Forward"}
+        </div>
         <div>Description: {item.description}</div>
-        <div>Ending Time: {item.end_time}</div>
-        <div>Price: {item.price}</div>
-        <div>Shipping Cost: {item.shipping_cost}</div>
-        <div>Current Top Bidder: {item.top_bidder}</div>
-        <label className="block text-grey-darker text-sm font-bold mb-2">
-          Bid:
-        </label>
+        <div>
+          Ending Time:{" "}
+          {item.auction_type == "D"
+            ? "N/A"
+            : new Date(+item.end_time).toString()}
+        </div>
+        <div>Price: ${item.price}</div>
+        <div>Shipping Cost: ${item.shipping_cost}</div>
+        <div hidden={item.auction_type == "D"}>
+          Top Bidder: {item.top_bidder}
+        </div>
         <input
           className="shadow appearance-none border rounded w-full py-2 px-3 text-grey-darker"
           id="bid"
           type="number"
           placeholder="$$$"
           onChange={(e) => setBid(e.target.value)}
+          hidden={item.active == "false" || item.auction_type == "D"}
         ></input>
         <div hidden={!inputError}>Error, please try again</div>
+        <div hidden={username != item.top_bidder || item.active == "true"}>
+          You've won the bid
+        </div>
         <button
           className="font-bold py-2 px-4 rounded-full bg-green-500"
           type="button"
           onClick={sendBid}
+          hidden={item.active == "false" || item.auction_type == "D"}
         >
           Bid
+        </button>
+        <button
+          className="font-bold py-2 px-4 rounded-full bg-green-500"
+          type="button"
+          onClick={buyNow}
+          hidden={item.active == "false" || item.auction_type == "F"}
+        >
+          Buy Now
+        </button>
+        <div hidden={item.active == "true"}>This auction has ended</div>
+        <div
+          hidden={
+            username != item.top_bidder ||
+            item.active == "true" ||
+            itemPaid == true
+          }
+        >
+          <Payment
+            item={item}
+            username={username as string}
+            token={token as string}
+          />
+        </div>
+        <button
+          className="font-bold py-2 px-4 rounded-full bg-green-500"
+          type="button"
+          hidden={itemPaid == false || item.top_bidder != username}
+        >
+          <a href={`/receipt/${id}`}>View Receipt</a>
         </button>
       </div>
     );

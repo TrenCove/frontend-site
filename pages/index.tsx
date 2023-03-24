@@ -1,19 +1,79 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import SearchTable from "@/components/SearchTable";
-import { item } from "@/interfaces/interfaces";
-
+import { Item } from "@/interfaces/interfaces";
 
 export default function Home() {
   const router = useRouter();
   const [auth, setAuth] = useState(false);
-  const [items, setItems] = useState<item[]>();
+  const [items, setItems] = useState<Item[]>();
   const token = getAccessToken();
 
   function logout() {
     localStorage.clear();
     setAuth(false);
     router.push("/login");
+  }
+
+  function addItemtoDb(item: Item) {
+    fetch("http://localhost:3002/itemAdd", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(item),
+    }).then(async (response) => {
+      if (response.status == 200) {
+        console.log("Adding item to db ");
+        getAllItems();
+      }
+    });
+  }
+
+  function getAllItems() {
+    fetch("http://localhost:3002/getAllItems", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    }).then(async (response) => {
+      console.log("Fetching");
+      if (response.status == 200) {
+        setItems(await response.json());
+      }
+    });
+  }
+
+  function addTestForwardAuctionItem() {
+    const testItem: Item = {
+      item_id: 1,
+      item_name: "Test item " + Math.floor(Math.random() * 100),
+      description: "This is a description",
+      top_bidder: "",
+      price: Math.floor(Math.random() * 100),
+      shipping_cost: Math.floor(Math.random() * 100),
+      active: "true",
+      auction_type: "F",
+      end_time: `${Date.now() + 5 * 60000}`,
+    };
+    addItemtoDb(testItem);
+  }
+
+  function addTestDutchAuctionItem() {
+    const testItem: Item = {
+      item_id: 1,
+      item_name: "Test item " + Math.floor(Math.random() * 100),
+      description: "This is a description",
+      top_bidder: "",
+      price: Math.floor(Math.random() * 100),
+      shipping_cost: Math.floor(Math.random() * 100),
+      active: "true",
+      auction_type: "D",
+      end_time: "",
+    };
+    addItemtoDb(testItem);
   }
 
   function getAccessToken() {
@@ -46,14 +106,7 @@ export default function Home() {
   useEffect(() => {
     if (token != undefined) {
       isAuth(token);
-      fetch("http://localhost:3002/getAllItems", {
-        method: "GET",
-      }).then(async (response) => {
-        console.log("Fetching");
-        if (response.status == 200) {
-          setItems(await response.json());
-        }
-      });
+      getAllItems();
     } else {
       router.push("/login");
     }
@@ -106,6 +159,20 @@ export default function Home() {
                   </thead>
                   <SearchTable items={items} />
                 </table>
+                <button
+                  className="font-bold py-2 px-4 rounded-full bg-green-500"
+                  type="button"
+                  onClick={addTestForwardAuctionItem}
+                >
+                  Add test forward auction item
+                </button>
+                <button
+                  className="font-bold py-2 px-4 rounded-full bg-green-500"
+                  type="button"
+                  onClick={addTestDutchAuctionItem}
+                >
+                  Add test dutch auction item
+                </button>
               </div>
             </div>
           </div>
