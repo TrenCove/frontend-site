@@ -10,6 +10,7 @@ export default function Payment({ item, username, token, }: { item: Item; userna
   const [expiry, setExpiry] = useState("");
   const [code, setCode] = useState("");
   const [expedited, setExpedited] = useState(false);
+  const [pay, setPayOption] = useState("");
 
   function handleCheck() {
     setExpedited(!expedited);
@@ -19,11 +20,12 @@ export default function Payment({ item, username, token, }: { item: Item; userna
   function sendPayment(){
     const paymentRequest = {
       item_id: item.item_id,
+      pay: pay,
       item_receipt: {
         username: username,
         address: user?.address,
         name: user?.name,
-        cost: expedited ? Math.round((+item.price + 5) * 100) / 100 : item.price
+        cost: expedited ? Math.round((+item.price + 5) * 100) / 100 : item.price,
       },
     }
 
@@ -65,6 +67,31 @@ export default function Payment({ item, username, token, }: { item: Item; userna
   return (
     <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 flex flex-col">
       <div className="mb-4">
+      <label className="block text-grey-darker text-sm font-bold mb-2">
+          Card Type
+        </label>
+        <input 
+          type = "radio" 
+          value = "Visa"
+          name = "r1"
+          onChange={(e) => setPayOption(e.target.value)}
+          />
+        <label>Visa</label>
+        <input
+         type = "radio" 
+         value = "MasterCard"
+         name = "r1"
+         onChange={(e) => setPayOption(e.target.value)}
+         />
+        <label>MasterCard</label>
+        <input 
+          type = "radio" 
+          value = "Amex"
+          name = "r1"
+          onChange={(e) => setPayOption(e.target.value)}
+          />
+        <label>Amex</label>
+
         <label className="block text-grey-darker text-sm font-bold mb-2">
           Card #
         </label>
