@@ -65,6 +65,7 @@ export default function ItemPage() {
       body: JSON.stringify(request),
     }).then(async (response) => {
       console.log(response);
+      router.reload();
     });
   }
 
